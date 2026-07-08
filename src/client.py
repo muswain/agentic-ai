@@ -67,12 +67,15 @@ def create_strands_mcp_client() -> StrandsMCPClient:
     server_url = os.getenv("MCP_PROXY_URL")
 
     if server_url:
+
         def transport() -> Any:
             http_client = httpx.AsyncClient(headers=_proxy_headers() or None)
 
             async def proxy_context() -> Any:
                 async with http_client:
-                    async with streamable_http_client(server_url, http_client=http_client) as streams:
+                    async with streamable_http_client(
+                        server_url, http_client=http_client
+                    ) as streams:
                         yield streams
 
             from contextlib import asynccontextmanager

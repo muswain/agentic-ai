@@ -8,12 +8,19 @@ This project uses **AWS Bedrock Agents** (Strands Agent) with Python and managed
 - Python 3.14.6+
 - AWS credentials configured
 - [uv](https://github.com/astral-sh/uv) installed
+- [mise](https://mise.jdx.dev/) installed
 
 ### Installation
 
 1. Install dependencies:
 ```bash
 uv sync
+```
+
+Or use mise to provision the local toolchain first:
+```bash
+mise install
+mise exec -- uv sync
 ```
 
 2. Set up environment variables:
@@ -25,6 +32,11 @@ cp .env.example .env
 3. Install development dependencies:
 ```bash
 uv sync --extra dev
+```
+
+4. Install pre-commit hooks:
+```bash
+uv run pre-commit install
 ```
 
 ## Project Structure
@@ -67,6 +79,12 @@ Environment notes:
 
 ## Development
 
+Using mise for the project environment:
+```bash
+mise install
+mise exec -- uv sync --extra dev
+```
+
 Format code:
 ```bash
 uv run black src/
@@ -75,6 +93,16 @@ uv run black src/
 Run linter:
 ```bash
 uv run ruff check src/
+```
+
+Run Ruff auto-fixes:
+```bash
+uv run ruff check --fix src/
+```
+
+Run pre-commit manually:
+```bash
+uv run pre-commit run --all-files
 ```
 
 Run tests:

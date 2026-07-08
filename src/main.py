@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-from typing import Tuple
 
 from dotenv import load_dotenv
 from strands import Agent
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_PROMPT = "Use the add tool to calculate 1888 + 2 and explain the result briefly."
 
 
-def build_agent() -> Tuple[Agent, MCPClient]:
+def build_agent() -> tuple[Agent, MCPClient]:
     region = os.getenv("AWS_REGION", "ap-southeast-2")
     model_id = os.getenv("BEDROCK_MODEL_ID", "amazon.nova-micro-v1:0")
     mcp_client = create_strands_mcp_client()
