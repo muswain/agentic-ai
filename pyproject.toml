@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentic-ai"
+version = "0.1.0"
+description = "AWS Bedrock Agents project using Strands Agent"
+readme = "README.md"
+requires-python = ">=3.14.6"
+license = {text = "MIT"}
+authors = [
+    {name = "Developer", email = "dev@example.com"}
+]
+
+dependencies = [
+    "asyncio>=4.0.0",
+    "boto3>=1.26.0",
+    "botocore>=1.29.0",
+    "mcp[cli]>=1.28.1",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "strands-agents>=1.45.0",
+    "typing-extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "ipython>=8.0.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py314"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+select = ["E", "F", "W", "I", "C", "UP"]
+
+[tool.mypy]
+python_version = "3.14"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=src --cov-report=html --cov-report=term-missing"
