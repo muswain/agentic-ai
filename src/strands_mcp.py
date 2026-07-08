@@ -14,7 +14,7 @@ def _build_local_server_params() -> StdioServerParameters:
     project_root = Path(__file__).resolve().parent.parent
     return StdioServerParameters(
         command="uv",
-        args=["run", "mcp", "run", "src/mcp/server.py"],
+        args=["run", "mcp", "run", "src/mcp_server/server.py"],
         cwd=str(project_root),
     )
 

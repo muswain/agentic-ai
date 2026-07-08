@@ -44,7 +44,7 @@ mise exec -- uv run pre-commit install
 agentic-ai/
 ├── src/
 │   ├── agents/           # Agent configurations and logic
-│   ├── mcp/              # MCP server package
+│   ├── mcp_server/       # Local MCP server package
 │   ├── tools/            # Tool definitions for agents
 │   ├── utils/            # Utility functions
 │   ├── strands_mcp.py    # Strands MCP bridge
@@ -77,7 +77,7 @@ Environment notes:
 - Defaults are `AWS_REGION=ap-southeast-2` and `BEDROCK_MODEL_ID=amazon.nova-micro-v1:0`.
 - Amazon Bedrock does not provide a free always-on model tier here; usage is billed.
 - Optionally override `BEDROCK_MODEL_ID` and `AWS_REGION`.
-- By default the agent loads tools from `src/mcp/server.py` over MCP stdio.
+- By default the agent loads tools from `src/mcp_server/server.py` over MCP stdio.
 - The Streamlit app also includes a direct MCP tool playground for local tool checks.
 - Launch the CLI and UI through `mise run ...` or `mise exec -- uv run ...` so the project environment is used.
 - Do not run plain `python` or plain `streamlit` from outside the project environment, or imports like `mcp.client` may fail.
