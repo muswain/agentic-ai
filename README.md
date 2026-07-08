@@ -1,42 +1,41 @@
 # Agentic AI - AWS Bedrock Agents Project
 
-This project uses **AWS Bedrock Agents** (Strands Agent) with Python and managed by **uv** package manager.
+This project uses **AWS Bedrock Agents** (Strands Agent) with Python, with **mise** for toolchain management and **uv** for dependencies.
 
 ## Setup
 
 ### Prerequisites
-- Python 3.14.6+
 - AWS credentials configured
-- [uv](https://github.com/astral-sh/uv) installed
 - [mise](https://mise.jdx.dev/) installed
+
+`mise` will provision the pinned Python and `uv` versions for this repo.
 
 ### Installation
 
-1. Install dependencies:
-```bash
-uv sync
-```
-
-Or use mise to provision the local toolchain first:
+1. Install the toolchain:
 ```bash
 mise install
-mise exec -- uv sync
 ```
 
-2. Set up environment variables:
+2. Install dependencies:
+```bash
+mise run sync
+```
+
+3. Set up environment variables:
 ```bash
 cp .env.example .env
 # Edit .env with your AWS configuration
 ```
 
-3. Install development dependencies:
+4. Install development dependencies:
 ```bash
-uv sync --extra dev
+mise run sync-dev
 ```
 
-4. Install pre-commit hooks:
+5. Install pre-commit hooks:
 ```bash
-uv run pre-commit install
+mise exec -- uv run pre-commit install
 ```
 
 ## Project Structure
@@ -45,9 +44,12 @@ uv run pre-commit install
 agentic-ai/
 ├── src/
 │   ├── agents/           # Agent configurations and logic
+│   ├── mcp/              # MCP server package
 │   ├── tools/            # Tool definitions for agents
 │   ├── utils/            # Utility functions
-│   └── main.py           # Entry point
+│   ├── strands_mcp.py    # Strands MCP bridge
+│   ├── main.py           # CLI entry point
+│   └── ui.py             # Streamlit entry point
 ├── tests/                # Test files
 ├── pyproject.toml        # Project configuration (uv)
 └── README.md
@@ -55,19 +57,19 @@ agentic-ai/
 
 ## Usage
 
-Run the agent:
-```bash
-python -m src.main
-```
-
 Run the Strands agent with MCP-backed local tools:
 ```bash
-uv run python src/main.py
+mise run agent
+```
+
+Run the Streamlit UI:
+```bash
+mise run ui
 ```
 
 Run with a custom prompt:
 ```bash
-uv run python src/main.py "Use the add tool to calculate 12 + 30"
+mise exec -- uv run python -m src.main "Use the add tool to calculate 12 + 30"
 ```
 
 Environment notes:
@@ -75,44 +77,43 @@ Environment notes:
 - Defaults are `AWS_REGION=ap-southeast-2` and `BEDROCK_MODEL_ID=amazon.nova-micro-v1:0`.
 - Amazon Bedrock does not provide a free always-on model tier here; usage is billed.
 - Optionally override `BEDROCK_MODEL_ID` and `AWS_REGION`.
-- By default the agent loads tools from `src/server.py` over MCP stdio.
+- By default the agent loads tools from `src/mcp/server.py` over MCP stdio.
+- The Streamlit app also includes a direct MCP tool playground for local tool checks.
+- Launch the CLI and UI through `mise run ...` or `mise exec -- uv run ...` so the project environment is used.
+- Do not run plain `python` or plain `streamlit` from outside the project environment, or imports like `mcp.client` may fail.
+- `.python-version` remains only as compatibility metadata for tools like pyenv; `mise` is the intended workflow.
 
 ## Development
 
-Using mise for the project environment:
+Recommended development workflow:
 ```bash
 mise install
-mise exec -- uv sync --extra dev
+mise run sync-dev
 ```
 
 Format code:
 ```bash
-uv run black src/
+mise run format
 ```
 
 Run linter:
 ```bash
-uv run ruff check src/
-```
-
-Run Ruff auto-fixes:
-```bash
-uv run ruff check --fix src/
+mise run lint
 ```
 
 Run pre-commit manually:
 ```bash
-uv run pre-commit run --all-files
+mise run precommit
 ```
 
 Run tests:
 ```bash
-uv run pytest
+mise run test
 ```
 
 Type checking:
 ```bash
-uv run mypy src/
+mise exec -- uv run mypy src/
 ```
 
 ## AWS Bedrock Agent Documentation

@@ -4,3 +4,27 @@ uv = "latest"
 
 [env]
 _.file = ".env"
+
+[tasks.sync]
+run = "uv sync"
+
+[tasks.sync-dev]
+run = "uv sync --extra dev"
+
+[tasks.agent]
+run = "uv run python -m src.main"
+
+[tasks.ui]
+run = "uv run streamlit run src/ui.py"
+
+[tasks.lint]
+run = "uv run ruff check src/"
+
+[tasks.format]
+run = "uv run ruff check --fix src/ && uv run ruff format src/"
+
+[tasks.test]
+run = "uv run pytest"
+
+[tasks.precommit]
+run = "uv run pre-commit run --all-files"
