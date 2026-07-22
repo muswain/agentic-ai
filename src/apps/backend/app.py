@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from src.agents.orchestrator import run_chat_turn
 
-app = FastAPI(title="Agentic AI")
+app = FastAPI(title="Agentic AI", description="A chat endpoint for the Agentic AI Streamlit UI.")
 
 
 class ChatMessage(BaseModel):

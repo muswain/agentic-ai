@@ -45,11 +45,12 @@ agentic-ai/
 ├── src/
 │   ├── agents/               # Agent orchestration and agent-owned utilities
 │   │   └── orchestrator.py   # Primary agent orchestrator
+│   ├── mcp/                  # MCP server and tools, separate from agents
+│   │   ├── server.py
+│   │   └── tools/
 │   ├── apps/
-│   │   ├── backend/          # FastAPI app, MCP server/client, and backend tools
-│   │   │   ├── app.py
-│   │   │   ├── mcp/
-│   │   │   └── tools/
+│   │   ├── backend/          # FastAPI backend app
+│   │   │   └── app.py
 │   │   └── frontend/         # Streamlit chat UI
 │   │       └── chat_ui.py
 │   └── utils/                # Shared utility functions
@@ -70,6 +71,11 @@ Run the FastAPI backend:
 mise run api
 ```
 
+Run the MCP server:
+```bash
+mise run mcp
+```
+
 Run the Streamlit chat UI:
 ```bash
 mise run ui
@@ -77,17 +83,18 @@ mise run ui
 
 Run with a custom prompt:
 ```bash
-mise exec -- uv run python -m src.agents.orchestrator "Use the add tool to calculate 12 + 30"
+mise exec -- uv run python -c "from src.agents.orchestrator import run_agent_prompt; print(run_agent_prompt('Use the add tool to calculate 12 + 30'))"
 ```
 
 Environment notes:
-- Defaults are `OLLAMA_HOST=http://localhost:11434` and `OLLAMA_MODEL=qwen3.5:4b`.
-- Optionally override `OLLAMA_HOST` and `OLLAMA_MODEL`.
-- By default the agent loads tools from `src/apps/backend/mcp/server.py` over MCP stdio.
+- Runtime configuration is loaded from `.env` (copy from `.env.example`).
+- Required variables: `AGENT_REGION`, `OLLAMA_MODEL`, `OLLAMA_HOST`, `MCP_SERVER_URL`.
+- For streamable HTTP transport, set `MCP_SERVER_URL=http://127.0.0.1:9000/mcp`.
+- By default the MCP server implementation is at `src/mcp/server.py`.
 - The Streamlit chat calls a single FastAPI endpoint, which initializes the orchestrator and lets the agent decide when to use MCP tools.
 - The request flow is: Streamlit chat UI -> FastAPI -> agent -> MCP tools -> response.
 - Launch the CLI and UI through `mise run ...` or `mise exec -- uv run ...` so the project environment is used.
-- Start the backend before using the UI, or the chat app will not be able to reach the API endpoint.
+- Start the MCP server and backend before using the UI.
 - Do not run plain `python` or plain `streamlit` from outside the project environment, or imports like `mcp.client` may fail.
 - `.python-version` remains only as compatibility metadata for tools like pyenv; `mise` is the intended workflow.
 

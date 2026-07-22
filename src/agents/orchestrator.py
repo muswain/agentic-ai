@@ -2,14 +2,17 @@
 
 import logging
 import os
-import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any, TypedDict
+from urllib.parse import urlparse
 
+import httpx
 from dotenv import load_dotenv
+from mcp.client.streamable_http import streamable_http_client
 from strands import Agent
 from strands.models import OllamaModel
-
-from src.apps.backend.mcp.client import create_strands_mcp_client
+from strands.tools.mcp import MCPClient as StrandsMCPClient
 
 load_dotenv()
 
@@ -19,24 +22,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DEFAULT_PROMPT = "Use the add tool to calculate 1888 + 2 and explain the result briefly."
-DEFAULT_REGION = "local"
-DEFAULT_MODEL_ID = "qwen3.5:4b"
-DEFAULT_OLLAMA_HOST = "http://localhost:11434"
+ENV_REGION = "AGENT_REGION"
+ENV_MODEL_ID = "OLLAMA_MODEL"
+ENV_OLLAMA_HOST = "OLLAMA_HOST"
+ENV_MCP_SERVER_URL = "MCP_SERVER_URL"
 BASE_SYSTEM_PROMPT = (
     "You are a Strands orchestrator agent running against a local Ollama model and MCP tools. "
     "Use tools for information-gathering and computation when they improve accuracy."
 )
 AGENT_SKILLS = (
     "Use MCP tools whenever they can ground the answer better than guessing.",
+    (
+        "Before using weather tools, read weather://sources and weather://codes to "
+        "understand provenance and weather-code meanings."
+    ),
     "Summarize tool outputs for the user instead of returning raw payloads.",
-    "When tool data is incomplete, explain the limitation briefly and continue with the best answer possible.",
+    ("When tool data is incomplete, explain the limitation briefly and continue with the best answer possible."),
 )
 
 
 class ConversationMessage(TypedDict):
     role: str
     content: str
+
+
+def _get_required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"Missing required environment variable: {name}")
+    return value
 
 
 def build_system_prompt() -> str:
@@ -60,15 +74,44 @@ def build_agent(
     model_id: str | None = None,
     system_prompt: str | None = None,
 ) -> Agent:
-    resolved_model_id = model_id or os.getenv("OLLAMA_MODEL", DEFAULT_MODEL_ID)
-    resolved_host = os.getenv("OLLAMA_HOST", DEFAULT_OLLAMA_HOST)
+    resolved_model_id = model_id or _get_required_env(ENV_MODEL_ID)
+    resolved_host = _get_required_env(ENV_OLLAMA_HOST)
     model = OllamaModel(resolved_host, model_id=resolved_model_id)
 
     return Agent(
+        name="Strands Orchestrator Agent",
+        description="An agent that orchestrates tool usage for user requests using MCP tools.",
         model=model,
         tools=tools,
         system_prompt=system_prompt or build_system_prompt(),
     )
+
+
+def create_mcp_client(server_url: str | None = None) -> StrandsMCPClient:
+    resolved_server_url = server_url or _get_required_env(ENV_MCP_SERVER_URL)
+    parsed = urlparse(resolved_server_url)
+    logger.info(
+        "Connecting to MCP server at %s (host=%s, port=%s)",
+        resolved_server_url,
+        parsed.hostname or "unknown",
+        parsed.port or "default",
+    )
+
+    def transport() -> Any:
+        http_client = httpx.AsyncClient()
+
+        @asynccontextmanager
+        async def proxy_context() -> AsyncIterator[Any]:
+            async with http_client:
+                async with streamable_http_client(
+                    resolved_server_url,
+                    http_client=http_client,
+                ) as streams:
+                    yield streams
+
+        return proxy_context()
+
+    return StrandsMCPClient(transport)
 
 
 def run_agent_prompt(
@@ -78,7 +121,7 @@ def run_agent_prompt(
     model_id: str | None = None,
     system_prompt: str | None = None,
 ) -> str:
-    with create_strands_mcp_client() as mcp_client:
+    with create_mcp_client() as mcp_client:
         tools = mcp_client.list_tools_sync()
         agent = build_agent(
             tools,
@@ -101,12 +144,3 @@ def run_chat_turn(
         region=region,
         model_id=model_id,
     )
-
-
-def main() -> None:
-    prompt = " ".join(sys.argv[1:]).strip() or DEFAULT_PROMPT
-    print(run_chat_turn([{"role": "user", "content": prompt}]))
-
-
-if __name__ == "__main__":
-    main()
