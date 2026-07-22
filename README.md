@@ -124,10 +124,12 @@ Type checking:
 mise exec -- uv run mypy src/
 ```
 
-## AWS Bedrock Agent Documentation
+## Strands And Ollama References
 
-- [AWS Bedrock Agents](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html)
-- [Boto3 Bedrock Agents](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-agent-runtime.html)
+- [Strands Agents Documentation](https://strandsagents.com/latest/)
+- [Strands Models API](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/models/overview/)
+- [Ollama Documentation](https://ollama.com/docs)
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 
 ## License
 
