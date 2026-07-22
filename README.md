@@ -1,11 +1,11 @@
-# Agentic AI - AWS Bedrock Agents Project
+# Agentic AI
 
-This project uses **AWS Bedrock Agents** (Strands Agent) with Python, with **mise** for toolchain management and **uv** for dependencies.
+This project uses **Strands Agents** with a local **Ollama** model, with **mise** for toolchain management and **uv** for dependencies.
 
 ## Setup
 
 ### Prerequisites
-- AWS credentials configured
+- Ollama running locally with `qwen3.5:4b` available
 - [mise](https://mise.jdx.dev/) installed
 
 `mise` will provision the pinned Python and `uv` versions for this repo.
@@ -25,7 +25,7 @@ mise run sync
 3. Set up environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your AWS configuration
+# Edit .env with your local/runtime configuration
 ```
 
 4. Install development dependencies:
@@ -43,13 +43,16 @@ mise exec -- uv run pre-commit install
 ```
 agentic-ai/
 ├── src/
-│   ├── agents/           # Agent configurations and logic
-│   ├── mcp_server/       # Local MCP server package
-│   ├── tools/            # Tool definitions for agents
-│   ├── utils/            # Utility functions
-│   ├── strands_mcp.py    # Strands MCP bridge
-│   ├── main.py           # CLI entry point
-│   └── ui.py             # Streamlit entry point
+│   ├── agents/               # Agent orchestration and agent-owned utilities
+│   │   └── orchestrator.py   # Primary agent orchestrator
+│   ├── apps/
+│   │   ├── backend/          # FastAPI app, MCP server/client, and backend tools
+│   │   │   ├── app.py
+│   │   │   ├── mcp/
+│   │   │   └── tools/
+│   │   └── frontend/         # Streamlit chat UI
+│   │       └── chat_ui.py
+│   └── utils/                # Shared utility functions
 ├── tests/                # Test files
 ├── pyproject.toml        # Project configuration (uv)
 └── README.md
@@ -57,29 +60,34 @@ agentic-ai/
 
 ## Usage
 
-Run the Strands agent with MCP-backed local tools:
+Run the agent orchestrator with MCP-backed local tools:
 ```bash
 mise run agent
 ```
 
-Run the Streamlit UI:
+Run the FastAPI backend:
+```bash
+mise run api
+```
+
+Run the Streamlit chat UI:
 ```bash
 mise run ui
 ```
 
 Run with a custom prompt:
 ```bash
-mise exec -- uv run python -m src.main "Use the add tool to calculate 12 + 30"
+mise exec -- uv run python -m src.agents.orchestrator "Use the add tool to calculate 12 + 30"
 ```
 
 Environment notes:
-- Configure AWS credentials for Bedrock access.
-- Defaults are `AWS_REGION=ap-southeast-2` and `BEDROCK_MODEL_ID=amazon.nova-micro-v1:0`.
-- Amazon Bedrock does not provide a free always-on model tier here; usage is billed.
-- Optionally override `BEDROCK_MODEL_ID` and `AWS_REGION`.
-- By default the agent loads tools from `src/mcp_server/server.py` over MCP stdio.
-- The Streamlit app also includes a direct MCP tool playground for local tool checks.
+- Defaults are `OLLAMA_HOST=http://localhost:11434` and `OLLAMA_MODEL=qwen3.5:4b`.
+- Optionally override `OLLAMA_HOST` and `OLLAMA_MODEL`.
+- By default the agent loads tools from `src/apps/backend/mcp/server.py` over MCP stdio.
+- The Streamlit chat calls a single FastAPI endpoint, which initializes the orchestrator and lets the agent decide when to use MCP tools.
+- The request flow is: Streamlit chat UI -> FastAPI -> agent -> MCP tools -> response.
 - Launch the CLI and UI through `mise run ...` or `mise exec -- uv run ...` so the project environment is used.
+- Start the backend before using the UI, or the chat app will not be able to reach the API endpoint.
 - Do not run plain `python` or plain `streamlit` from outside the project environment, or imports like `mcp.client` may fail.
 - `.python-version` remains only as compatibility metadata for tools like pyenv; `mise` is the intended workflow.
 

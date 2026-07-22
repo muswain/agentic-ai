@@ -12,10 +12,13 @@ run = "uv sync"
 run = "uv sync --extra dev"
 
 [tasks.agent]
-run = "uv run python -m src.main"
+run = "uv run python -m src.agents.orchestrator"
+
+[tasks.api]
+run = "uv run uvicorn src.apps.backend.app:app --host 127.0.0.1 --port 8000"
 
 [tasks.ui]
-run = "uv run streamlit run src/ui.py"
+run = "uv run streamlit run src/apps/frontend/chat_ui.py"
 
 [tasks.lint]
 run = "uv run ruff check src/"

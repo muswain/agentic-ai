@@ -1,6 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
-from src.tools import geocode_place, get_weather, get_weather_for_place
+from src.apps.backend.tools import geocode_place, get_weather, get_weather_for_place
 
 mcp = FastMCP("Demo", instructions="A simple demo of the MCP framework.")
 

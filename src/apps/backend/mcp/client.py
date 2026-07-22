@@ -11,10 +11,10 @@ from strands.tools.mcp import MCPClient as StrandsMCPClient
 
 
 def _build_local_server_params() -> StdioServerParameters:
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = Path(__file__).resolve().parent.parent.parent.parent.parent
     return StdioServerParameters(
         command="uv",
-        args=["run", "mcp", "run", "src/mcp_server/server.py"],
+        args=["run", "mcp", "run", "src/apps/backend/mcp/server.py"],
         cwd=str(project_root),
     )
 
