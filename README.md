@@ -71,11 +71,6 @@ Run the FastAPI backend:
 mise run api
 ```
 
-Run the MCP server:
-```bash
-mise run mcp
-```
-
 Run the Streamlit chat UI:
 ```bash
 mise run ui
@@ -89,12 +84,13 @@ mise exec -- uv run python -c "from src.agents.orchestrator import run_agent_pro
 Environment notes:
 - Runtime configuration is loaded from `.env` (copy from `.env.example`).
 - Required variables: `AGENT_REGION`, `OLLAMA_MODEL`, `OLLAMA_HOST`, `MCP_SERVER_URL`.
-- For streamable HTTP transport, set `MCP_SERVER_URL=http://127.0.0.1:9000/mcp`.
+- Integrated backend setup: `MCP_SERVER_URL=http://127.0.0.1:8000/mcp`.
+- Streamlit default chat endpoint: `AGENT_API_URL=http://127.0.0.1:8000/api/chat`.
 - By default the MCP server implementation is at `src/mcp/server.py`.
 - The Streamlit chat calls a single FastAPI endpoint, which initializes the orchestrator and lets the agent decide when to use MCP tools.
-- The request flow is: Streamlit chat UI -> FastAPI -> agent -> MCP tools -> response.
+- The request flow is: Streamlit chat UI -> FastAPI (/api) -> agent -> FastAPI-mounted MCP (/mcp) -> response.
 - Launch the CLI and UI through `mise run ...` or `mise exec -- uv run ...` so the project environment is used.
-- Start the MCP server and backend before using the UI.
+- Start the backend before using the UI (MCP is served by the same backend process).
 - Do not run plain `python` or plain `streamlit` from outside the project environment, or imports like `mcp.client` may fail.
 - `.python-version` remains only as compatibility metadata for tools like pyenv; `mise` is the intended workflow.
 

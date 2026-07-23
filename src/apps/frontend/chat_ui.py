@@ -7,7 +7,7 @@ import os
 import httpx
 import streamlit as st
 
-API_URL = os.getenv("AGENT_API_URL", "http://127.0.0.1:8000/chat")
+API_URL = os.getenv("AGENT_API_URL", "http://127.0.0.1:8000/api/chat")
 ASSISTANT_GREETING = "Ask a question and I will route it through the agent and its tools."
 
 

@@ -1,13 +1,30 @@
 """FastAPI app exposing a single chat endpoint for the Streamlit UI."""
 
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from src.agents.orchestrator import run_chat_turn
+from src.agents.orchestrator import ConversationMessage, run_chat_turn
+from src.mcp.server import mcp
 
-app = FastAPI(title="Agentic AI", description="A chat endpoint for the Agentic AI Streamlit UI.")
+mcp_app = mcp.streamable_http_app()
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Run MCP session manager lifecycle in the same backend process.
+    async with mcp.session_manager.run():
+        yield
+
+
+app = FastAPI(
+    title="Agentic AI",
+    description="FastAPI backend with integrated MCP endpoint.",
+    lifespan=lifespan,
+)
+app.mount("/", mcp_app)
 
 
 class ChatMessage(BaseModel):
@@ -23,14 +40,18 @@ class ChatResponse(BaseModel):
     response: str
 
 
+@app.get("/api/health")
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest) -> ChatResponse:
-    response = run_chat_turn(messages=[message.model_dump() for message in request.messages])
+    messages: list[ConversationMessage] = [
+        {"role": message.role, "content": message.content} for message in request.messages
+    ]
+    response = run_chat_turn(messages=messages)
     return ChatResponse(response=response)
 
 

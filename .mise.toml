@@ -20,9 +20,6 @@ run = "uv run uvicorn src.apps.backend.app:app --host 127.0.0.1 --port 8000"
 [tasks.ui]
 run = "uv run streamlit run src/apps/frontend/chat_ui.py"
 
-[tasks.mcp]
-run = "uv run mcp run src/mcp/server.py:mcp --transport streamable-http"
-
 [tasks.lint]
 run = "uv run ruff check src/"
 

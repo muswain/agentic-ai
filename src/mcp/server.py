@@ -76,12 +76,3 @@ def weather_sources_resource() -> str:
 def greet(name: str) -> str:
     """Greet someone by name."""
     return greeting(name)
-
-
-def main() -> None:
-    """Run the MCP server using Streamable HTTP transport."""
-    mcp.run(transport="streamable-http")
-
-
-if __name__ == "__main__":
-    main()
